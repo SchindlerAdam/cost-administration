@@ -1,6 +1,6 @@
 package com.schindler.costadministration.entities;
 
-import com.schindler.costadministration.command.RegisterUserCommand;
+import com.schindler.costadministration.model.RegisterUserModel;
 import com.schindler.costadministration.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -43,10 +43,13 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @OneToMany(mappedBy = "user")
+    private List<Token> tokens = new ArrayList<>();
+
     @Column(name = "deleted")
     private Boolean isDeleted;
 
-    public User(RegisterUserCommand userCommand) {
+    public User(RegisterUserModel userCommand) {
         this.username = userCommand.getUsername();
         this.password = userCommand.getPassword();
         this.email = userCommand.getEmail();

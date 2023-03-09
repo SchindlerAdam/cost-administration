@@ -1,6 +1,6 @@
 package com.schindler.costadministration.entities;
 
-import com.schindler.costadministration.command.GoalCommand;
+import com.schindler.costadministration.model.GoalModel;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,9 +28,9 @@ public class Goal {
     @Column(name = "deleted")
     private Boolean isDeleted = false;
 
-    public Goal(GoalCommand goalCommand) {
-        this.goalName = goalCommand.getGoalName();
-        this.goalPrice = goalCommand.getGoalPrice();
-        this.isDeleted = goalCommand.getIsDeleted();
+    public Goal(GoalModel goalModel) {
+        this.goalName = goalModel.getGoalName();
+        this.goalPrice = goalModel.getGoalPrice();
+        this.isDeleted = goalModel.getIsDeleted();
     }
 }

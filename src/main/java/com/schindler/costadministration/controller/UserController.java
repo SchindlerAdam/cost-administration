@@ -1,7 +1,7 @@
 package com.schindler.costadministration.controller;
 
-import com.schindler.costadministration.command.AuthCommand;
-import com.schindler.costadministration.command.RegisterUserCommand;
+import com.schindler.costadministration.model.AuthModel;
+import com.schindler.costadministration.model.RegisterUserModel;
 import com.schindler.costadministration.dto.TokenDto;
 import com.schindler.costadministration.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/account")
+@RequestMapping("/api/user")
 public class UserController {
 
     private final UserService userService;
@@ -19,13 +19,13 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<TokenDto> registerUser(@RequestBody RegisterUserCommand userCommand) {
-        return ResponseEntity.ok(userService.registerUser(userCommand));
+    public ResponseEntity<TokenDto> registerUser(@RequestBody RegisterUserModel userModel) {
+        return ResponseEntity.ok(userService.registerUser(userModel));
     }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<TokenDto> authenticate(@RequestBody AuthCommand authCommand) {
-        return ResponseEntity.ok(userService.authenticate(authCommand));
+    public ResponseEntity<TokenDto> authenticate(@RequestBody AuthModel authModel) {
+        return ResponseEntity.ok(userService.authenticate(authModel));
     }
 
     @GetMapping("/test")

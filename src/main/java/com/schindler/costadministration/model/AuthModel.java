@@ -1,4 +1,4 @@
-package com.schindler.costadministration.command;
+package com.schindler.costadministration.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthCommand {
+public class AuthModel {
 
     private String email;
     String password;

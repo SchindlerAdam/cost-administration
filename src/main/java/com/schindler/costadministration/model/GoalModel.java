@@ -1,9 +1,9 @@
-package com.schindler.costadministration.command;
+package com.schindler.costadministration.model;
 
 import lombok.Data;
 
 @Data
-public class GoalCommand {
+public class GoalModel {
     private String goalName;
     private Double goalPrice;
     private Boolean isDeleted;

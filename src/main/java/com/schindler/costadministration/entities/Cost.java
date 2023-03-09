@@ -1,6 +1,6 @@
 package com.schindler.costadministration.entities;
 
-import com.schindler.costadministration.command.CostCommand;
+import com.schindler.costadministration.model.CostModel;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,9 +31,9 @@ public class Cost {
     @JoinColumn(name = "user_id")
     private User user;
 
-    public Cost(CostCommand costCommand) {
-        this.costName = costCommand.getCostName();
-        this.costAmount = costCommand.getCostAmount();
+    public Cost(CostModel costModel) {
+        this.costName = costModel.getCostName();
+        this.costAmount = costModel.getCostAmount();
         this.costDate = LocalDateTime.now();
     }
 

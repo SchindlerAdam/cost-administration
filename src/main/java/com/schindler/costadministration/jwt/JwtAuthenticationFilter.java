@@ -1,5 +1,6 @@
 package com.schindler.costadministration.jwt;
 
+import com.schindler.costadministration.repository.TokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -7,25 +8,28 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import java.io.IOException;
+
 @Component
 @NoArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private JwtService jwtService;
     private UserDetailsService userDetailsService;
 
+    private TokenRepository tokenRepository;
+
     @Autowired
-    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService, TokenRepository tokenRepository) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.tokenRepository = tokenRepository;
     }
 
     @Override
@@ -44,8 +48,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String userEmail = jwtService.extractUserEmailFromToken(jwtToken);
             if (isUserEmailPresentedAndUserIsNotAuthenticatedYet(userEmail)) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-                if (isTokenIsValid(jwtToken, userDetails)) {
-                    createAuthTokenForSecurityContextHolder(userDetails, request);
+                if (isTokenIsValid(jwtToken, userDetails) && isTokenNotExpiredByLogout(jwtToken)) {
+                    updateSecurityContextHolder(userDetails, request);
                 }
             }
             filterChain.doFilter(request, response);
@@ -68,14 +72,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return this.jwtService.isTokenValid(token, userDetails);
     }
 
-    private void createAuthTokenForSecurityContextHolder(UserDetails userDetails, HttpServletRequest request) {
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        updateSecurityContextHolder(authenticationToken);
+    private boolean isTokenNotExpiredByLogout(String jwtToken) {
+        return this.tokenRepository.findTokenByToken(jwtToken).map(token -> !token.isExpiredByLogout()).orElse(false);
     }
 
-    private void updateSecurityContextHolder(UsernamePasswordAuthenticationToken authenticationToken) {
-        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+    private void updateSecurityContextHolder(UserDetails userDetails, HttpServletRequest request) {
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        securityContext.setAuthentication(authenticationToken);
+        SecurityContextHolder.setContext(securityContext);
     }
 
 

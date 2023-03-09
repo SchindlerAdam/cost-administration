@@ -1,10 +1,10 @@
-package com.schindler.costadministration.command;
+package com.schindler.costadministration.model;
 
 
 import lombok.Data;
 
 @Data
-public class RegisterUserCommand {
+public class RegisterUserModel {
     private String username;
     private String password;
     private String email;
