@@ -13,7 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Goal {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long goalId;
 
     @Column(name = "name")

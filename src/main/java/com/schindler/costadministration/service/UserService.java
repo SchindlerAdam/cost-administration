@@ -1,12 +1,17 @@
 package com.schindler.costadministration.service;
 
+import com.schindler.costadministration.dto.DeleteUserDto;
+import com.schindler.costadministration.dto.ModifyUserDto;
+import com.schindler.costadministration.dto.UserDetailsDto;
 import com.schindler.costadministration.model.AuthModel;
+import com.schindler.costadministration.model.ModifyUserModel;
 import com.schindler.costadministration.model.RegisterUserModel;
 import com.schindler.costadministration.dto.TokenDto;
 import com.schindler.costadministration.entities.User;
 import com.schindler.costadministration.jwt.JwtService;
 import com.schindler.costadministration.model.TokenModel;
 import com.schindler.costadministration.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,6 +32,8 @@ public class UserService{
 
     private final TokenService tokenService;
 
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+
     @Autowired
     public UserService(
             UserRepository userRepository,
@@ -45,7 +52,6 @@ public class UserService{
     public TokenDto registerUser(RegisterUserModel userModel) {
         userModel.setPassword(passwordEncoder.encode(userModel.getPassword()));
         var user = new User(userModel);
-        System.out.println(user.getRole());
         this.userRepository.save(user);
         String jwtToken = this.jwtService.generateToken(user);
         saveToken(user, jwtToken);
@@ -71,5 +77,51 @@ public class UserService{
                 .user(user)
                 .build();
         this.tokenService.saveToken(tokenModel);
+    }
+
+    public ModifyUserDto modifyUser(ModifyUserModel modifyUserModel, HttpServletRequest request) {
+        String token = request.getHeader(AUTHORIZATION_HEADER).substring(7);
+        String email = getEmailFromToken(token);
+        User user = this.userRepository.findUserByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Can not find a user with this email address!"));
+        if (!modifyUserModel.getNewUsername().isBlank()) {
+            user.setUsername(modifyUserModel.getNewUsername());
+        }
+        if (!modifyUserModel.getNewPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(modifyUserModel.getNewPassword()));
+        }
+        this.userRepository.save(user);
+        return ModifyUserDto.builder()
+                .message("Modification was successful!")
+                .build();
+    }
+
+    public UserDetailsDto getUserDetails(HttpServletRequest request) {
+        String token = request.getHeader(AUTHORIZATION_HEADER).substring(7);
+        String email = getEmailFromToken(token);
+        User user = this.userRepository.findUserByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Can not find a user with this email address!"));
+        return UserDetailsDto.builder()
+                .userId(user.getUserId())
+                .username((user.getUsername()))
+                .password(user.getPassword())
+                .email(user.getEmail())
+                .balance(user.getBalance())
+                .costList(user.getCostList())
+                .goalList(user.getGoalList())
+                .build();
+    }
+
+    private String getEmailFromToken(String token) {
+        return this.jwtService.extractUserEmailFromToken(token);
+    }
+
+    public DeleteUserDto deleteUser(HttpServletRequest request) {
+        String token = request.getHeader(AUTHORIZATION_HEADER).substring(7);
+        String email = getEmailFromToken(token);
+        User user = this.userRepository.findUserByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Can not find a user with this email address!"));
+        user.setIsDeleted(true);
+        this.userRepository.save(user);
+        return DeleteUserDto.builder()
+                .message("User has been deleted successfully!")
+                .build();
     }
 }
