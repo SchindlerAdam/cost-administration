@@ -3,7 +3,6 @@ package com.schindler.costadministration.service;
 import com.schindler.costadministration.dto.DeleteUserDto;
 import com.schindler.costadministration.dto.ModifyUserDto;
 import com.schindler.costadministration.dto.UserDetailsDto;
-import com.schindler.costadministration.entities.Token;
 import com.schindler.costadministration.exception.exceptions.AuthenticationException;
 import com.schindler.costadministration.exception.exceptions.DeleteUserException;
 import com.schindler.costadministration.exception.exceptions.ModifyUserException;
@@ -21,7 +20,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

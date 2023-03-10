@@ -2,12 +2,6 @@ package com.schindler.costadministration.dto;
 
 import com.schindler.costadministration.entities.Cost;
 import com.schindler.costadministration.entities.Goal;
-import com.schindler.costadministration.entities.Token;
-import com.schindler.costadministration.enums.Role;
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.OneToMany;
 import lombok.Builder;
 import lombok.Data;
 

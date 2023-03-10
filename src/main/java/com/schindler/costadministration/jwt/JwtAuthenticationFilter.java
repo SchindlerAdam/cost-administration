@@ -1,6 +1,5 @@
 package com.schindler.costadministration.jwt;
 
-import com.schindler.costadministration.exception.exceptions.AuthenticationException;
 import com.schindler.costadministration.repository.TokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

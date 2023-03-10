@@ -2,6 +2,9 @@ package com.schindler.costadministration.jwt;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,33 +17,34 @@ class JwtAuthenticationFilterTest {
         this.authenticationFilter = new JwtAuthenticationFilter();
     }
 
-    @Test
-    void authHeaderStartsWithBearer() {
-        String authHeader = "Bearer dasjdkhaskjdh12312323hdasiduhasiudhasd";
+    @ParameterizedTest
+    @ValueSource(strings = {"Bearer dasjdkhaskjdh12312323hdasiduhasiudhasd"})
+    void authHeaderStartsWithBearer(String authHeader) {
         assertFalse(this.authenticationFilter.isJwtTokenNotPresent(authHeader));
     }
 
-    @Test
-    void authHeaderNotStartsWithBearer() {
-        String authHeader = "dasjdkhaskjdh12312323hdasiduhasiudhasd";
+
+    @ParameterizedTest
+    @ValueSource(strings = {"dasjdkhaskjdh12312323hdasiduhasiudhasd"})
+    void authHeaderNotStartsWithBearer(String authHeader) {
         assertTrue(this.authenticationFilter.isJwtTokenNotPresent(authHeader));
     }
 
-    @Test
-    void authHeaderStartsWithLowerCaseBearer() {
-        String authHeader = "bearer dasjdkhaskjdh12312323hdasiduhasiudhasd";
+    @ParameterizedTest
+    @ValueSource(strings = {"bearer dasjdkhaskjdh12312323hdasiduhasiudhasd"})
+    void authHeaderStartsWithLowerCaseBearer(String authHeader) {
         assertTrue(this.authenticationFilter.isJwtTokenNotPresent(authHeader));
     }
 
-    @Test
-    void authHeaderNotContainsSpaceBetweenBearer() {
-        String authHeader = "Bearerdasjdkhaskjdh12312323hdasiduhasiudhasd";
+    @ParameterizedTest
+    @ValueSource(strings = {"Bearerdasjdkhaskjdh12312323hdasiduhasiudhasd"})
+    void authHeaderNotContainsSpaceBetweenBearer(String authHeader) {
         assertTrue(this.authenticationFilter.isJwtTokenNotPresent(authHeader));
     }
 
-    @Test
-    void authHeaderIsNull() {
-        String authHeader = null;
+    @ParameterizedTest
+    @NullSource
+    void authHeaderIsNull(String authHeader) {;
         assertTrue(this.authenticationFilter.isJwtTokenNotPresent(authHeader));
     }
 

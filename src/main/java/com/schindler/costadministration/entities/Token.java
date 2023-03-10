@@ -16,7 +16,7 @@ public class Token {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long tokenId;
 
-    private String token;
+    private String tokenContent;
 
     private boolean isExpiredByLogout;
     @ManyToOne
@@ -24,7 +24,7 @@ public class Token {
     private User user;
 
     public Token(TokenModel tokenModel) {
-        this.token = tokenModel.getToken();
+        this.tokenContent = tokenModel.getToken();
         this.isExpiredByLogout = tokenModel.isExpiredByLogout();
         this.user = tokenModel.getUser();
     }

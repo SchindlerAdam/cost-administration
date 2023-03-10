@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TokenRepository extends JpaRepository<Token, Long> {
-    @Query("SELECT t FROM Token t WHERE t.token = :token AND t.isExpiredByLogout = FALSE")
+    @Query("SELECT t FROM Token t WHERE t.tokenContent = :token AND t.isExpiredByLogout = FALSE")
     Optional<Token> findTokenByToken(String token);
 
     @Query("SELECT t FROM Token t WHERE t.user.userId = :userId AND t.isExpiredByLogout = FALSE")

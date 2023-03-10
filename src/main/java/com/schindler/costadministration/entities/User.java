@@ -40,11 +40,11 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user")
     private List<Goal> goalList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user")
+    private List<Token> tokens = new ArrayList<>();
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @OneToMany(mappedBy = "user")
-    private List<Token> tokens = new ArrayList<>();
 
     @Column(name = "deleted")
     private Boolean isDeleted;

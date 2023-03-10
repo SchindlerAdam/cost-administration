@@ -3,7 +3,6 @@ package com.schindler.costadministration.controller;
 import com.schindler.costadministration.dto.DeleteUserDto;
 import com.schindler.costadministration.dto.ModifyUserDto;
 import com.schindler.costadministration.dto.UserDetailsDto;
-import com.schindler.costadministration.exception.exceptions.ModifyUserException;
 import com.schindler.costadministration.model.AuthModel;
 import com.schindler.costadministration.model.ModifyUserModel;
 import com.schindler.costadministration.model.RegisterUserModel;
