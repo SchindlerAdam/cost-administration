@@ -45,7 +45,8 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-
+    @Column(name = "verified")
+    private Boolean isVerified;
     @Column(name = "deleted")
     private Boolean isDeleted;
 
@@ -56,6 +57,7 @@ public class User implements UserDetails {
         this.balance = 0;
         this.isDeleted = false;
         this.role = Role.USER;
+        this.isVerified = false;
     }
 
     @Override
@@ -74,6 +76,11 @@ public class User implements UserDetails {
     }
 
     @Override
+    public boolean isEnabled() {
+        return this.isVerified;
+    }
+
+    @Override
     public boolean isAccountNonExpired() {
         return true;
     }
@@ -85,11 +92,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
         return true;
     }
 }

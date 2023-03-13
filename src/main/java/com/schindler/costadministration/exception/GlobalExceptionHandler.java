@@ -1,10 +1,7 @@
 package com.schindler.costadministration.exception;
 
 import com.schindler.costadministration.dto.ExceptionDto;
-import com.schindler.costadministration.exception.exceptions.AuthenticationException;
-import com.schindler.costadministration.exception.exceptions.DeleteUserException;
-import com.schindler.costadministration.exception.exceptions.ModifyUserException;
-import com.schindler.costadministration.exception.exceptions.UserNotFoundException;
+import com.schindler.costadministration.exception.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -16,6 +13,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ExceptionDto> handleAuthenticationException(AuthenticationException exception) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ExceptionDto.builder()
+                                .errorCode(HttpStatus.BAD_REQUEST)
+                                .errorDetails(exception.getLocalizedMessage())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(UserAlreadyExistException.class)
+    public ResponseEntity<ExceptionDto> handleUserAlreadyExistException(UserAlreadyExistException exception) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(

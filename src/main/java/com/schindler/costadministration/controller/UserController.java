@@ -1,12 +1,9 @@
 package com.schindler.costadministration.controller;
 
-import com.schindler.costadministration.dto.DeleteUserDto;
-import com.schindler.costadministration.dto.ModifyUserDto;
-import com.schindler.costadministration.dto.UserDetailsDto;
+import com.schindler.costadministration.dto.*;
 import com.schindler.costadministration.model.AuthModel;
 import com.schindler.costadministration.model.ModifyUserModel;
 import com.schindler.costadministration.model.RegisterUserModel;
-import com.schindler.costadministration.dto.TokenDto;
 import com.schindler.costadministration.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +22,17 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<TokenDto> registerUser(@RequestBody RegisterUserModel userModel) {
+    public ResponseEntity<VerificationDto> registerUser(@RequestBody RegisterUserModel userModel) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(this.userService.registerUser(userModel));
+    }
+
+    @GetMapping("/verification/{verificationCode}")
+    public ResponseEntity<TokenDto> verifyUser(@PathVariable("verificationCode") String verificationCode) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(this.userService.verifyUser(verificationCode));
     }
 
     @PostMapping("/authenticate")
