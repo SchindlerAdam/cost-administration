@@ -1,8 +1,8 @@
 package com.schindler.costadministration.service;
 
 import com.schindler.costadministration.dto.*;
-import com.schindler.costadministration.emailVerification.EmailService;
-import com.schindler.costadministration.emailVerification.VerificationService;
+import com.schindler.costadministration.verification.EmailService;
+import com.schindler.costadministration.verification.VerificationService;
 import com.schindler.costadministration.entities.VerificationCode;
 import com.schindler.costadministration.exception.exceptions.*;
 import com.schindler.costadministration.model.*;
@@ -72,11 +72,7 @@ public class UserService{
     }
 
     private boolean isUserExisting(String email) {
-        if (this.userRepository.findUserByEmail(email).isPresent()) {
-            return true;
-        } else {
-            return false;
-        }
+        return this.userRepository.findNotVerifiedUserByEmail(email).isPresent();
     }
 
     public TokenDto verifyUser(String verificationCode) {

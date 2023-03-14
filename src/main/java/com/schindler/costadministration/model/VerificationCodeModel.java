@@ -16,7 +16,6 @@ public class VerificationCodeModel {
 
     private String code;
     private Date creationDate;
-
     private User user;
 
 }

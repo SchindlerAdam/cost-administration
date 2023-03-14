@@ -94,4 +94,8 @@ public class User implements UserDetails {
     public boolean isCredentialsNonExpired() {
         return true;
     }
+
+    public String getRealUserName() {
+        return this.username;
+    }
 }

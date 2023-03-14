@@ -1,4 +1,4 @@
-package com.schindler.costadministration.emailVerification;
+package com.schindler.costadministration.verification;
 
 import com.schindler.costadministration.model.VerificationCodeModel;
 import jakarta.mail.MessagingException;
@@ -24,7 +24,7 @@ public class EmailService {
     private static final String COST_LOGO_IMAGE = "templates/images/cost.png";
     private static final String PNG_MIME = "image/png";
     private static final String MAIL_SUBJECT = "Registration Confirmation";
-    private static final String FROM_NAME = "Cost Administration App";
+    private static final String FROM_NAME = "Team Cost App";
     private static final String VERIFICATION_URL = "http://localhost:8080/api/user/verification/"
 ;
     @Value("${spring.mail.username}")
@@ -48,7 +48,7 @@ public class EmailService {
 
         Context ctx = new Context(LocaleContextHolder.getLocale());
         ctx.setVariable("email", model.getUser().getEmail());
-        ctx.setVariable("name", model.getUser().getUsername());
+        ctx.setVariable("name", model.getUser().getRealUserName());
         ctx.setVariable("costLogo", COST_LOGO_IMAGE);
         ctx.setVariable("url", VERIFICATION_URL + model.getCode());
 

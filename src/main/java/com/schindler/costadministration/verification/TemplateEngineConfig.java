@@ -1,4 +1,4 @@
-package com.schindler.costadministration.emailVerification;
+package com.schindler.costadministration.verification;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

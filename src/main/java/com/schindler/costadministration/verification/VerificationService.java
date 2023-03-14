@@ -1,4 +1,4 @@
-package com.schindler.costadministration.emailVerification;
+package com.schindler.costadministration.verification;
 
 import com.schindler.costadministration.entities.VerificationCode;
 import com.schindler.costadministration.model.VerificationCodeModel;
