@@ -52,6 +52,8 @@ class UserRepositoryTest {
 
     @Test
     void shouldThrowUsernameNotFoundExceptionWhenUserNotFound() {
-        assertThatThrownBy(() -> underTest.findUserByEmail("fake@email.com").orElseThrow(UserNotFoundException::new)).isInstanceOf(UserNotFoundException.class).hasMessageContaining("Can not find a user with this email address!");
+        assertThatThrownBy(() -> underTest.findUserByEmail("fake@email.com").orElseThrow(UserNotFoundException::new))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessageContaining("Can not find a user with this email address!");
     }
 }

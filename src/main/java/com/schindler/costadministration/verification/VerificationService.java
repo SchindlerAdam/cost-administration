@@ -25,12 +25,8 @@ public class VerificationService {
         this.verificationRepository.save(new VerificationCode(model));
     }
 
-    public void sendVerificationEmail(VerificationCodeModel model) {
-        try {
-            this.emailService.sendVerificationEmail(model);
-        } catch (MessagingException | UnsupportedEncodingException exception) {
-            // TODO
-        }
+    public void sendVerificationEmail(VerificationCodeModel model) throws MessagingException, UnsupportedEncodingException {
+        this.emailService.sendVerificationEmail(model);
     }
 
     public VerificationCode getVerificationCode(String code) {

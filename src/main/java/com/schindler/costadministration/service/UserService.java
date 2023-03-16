@@ -9,6 +9,7 @@ import com.schindler.costadministration.model.*;
 import com.schindler.costadministration.entities.User;
 import com.schindler.costadministration.jwt.JwtService;
 import com.schindler.costadministration.repository.UserRepository;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.UUID;
 
@@ -42,7 +44,8 @@ public class UserService{
             PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager,
             JwtService jwtService,
-            TokenService tokenService, EmailService emailService, VerificationService verificationService)
+            TokenService tokenService,
+            VerificationService verificationService)
     {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -52,7 +55,7 @@ public class UserService{
         this.verificationService = verificationService;
     }
 
-    public VerificationDto registerUser(RegisterUserModel userModel) {
+    public VerificationDto registerUser(RegisterUserModel userModel) throws MessagingException, UnsupportedEncodingException {
         if (isUserExisting(userModel.getEmail())) {
             throw new UserAlreadyExistException();
         }
@@ -71,7 +74,7 @@ public class UserService{
                 .build();
     }
 
-    private boolean isUserExisting(String email) {
+    public boolean isUserExisting(String email) {
         return this.userRepository.findNotVerifiedUserByEmail(email).isPresent();
     }
 

@@ -5,11 +5,14 @@ import com.schindler.costadministration.model.AuthModel;
 import com.schindler.costadministration.model.ModifyUserModel;
 import com.schindler.costadministration.model.RegisterUserModel;
 import com.schindler.costadministration.service.UserService;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.UnsupportedEncodingException;
 
 @RestController
 @RequestMapping("/api/user")
@@ -22,7 +25,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<VerificationDto> registerUser(@RequestBody RegisterUserModel userModel) {
+    public ResponseEntity<VerificationDto> registerUser(@RequestBody RegisterUserModel userModel) throws MessagingException, UnsupportedEncodingException {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(this.userService.registerUser(userModel));
