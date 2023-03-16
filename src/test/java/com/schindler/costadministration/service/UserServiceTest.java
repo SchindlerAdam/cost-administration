@@ -20,6 +20,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Optional;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -83,8 +84,8 @@ class UserServiceTest {
 
         //WHEN
         underTest.isUserExisting(userModel.getEmail());
-        given(userRepository.findNotVerifiedUserByEmail(userModel.getEmail()).isPresent())
-                .willThrow(new UserAlreadyExistException());
+        given(userRepository.findNotVerifiedUserByEmail(userModel.getEmail()))
+                .willReturn(Optional.of(new User(userModel)));
 
         // THEN
         assertThatThrownBy(() -> underTest.registerUser(userModel))
