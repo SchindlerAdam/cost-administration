@@ -98,4 +98,8 @@ public class User implements UserDetails {
     public String getRealUserName() {
         return this.username;
     }
+
+    public void setRealUserName(String userName) {
+        this.username = userName;
+    }
 }

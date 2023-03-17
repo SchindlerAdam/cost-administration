@@ -1,7 +1,6 @@
 package com.schindler.costadministration.service;
 
 import com.schindler.costadministration.dto.*;
-import com.schindler.costadministration.verification.EmailService;
 import com.schindler.costadministration.verification.VerificationService;
 import com.schindler.costadministration.entities.VerificationCode;
 import com.schindler.costadministration.exception.exceptions.*;
@@ -60,7 +59,7 @@ public class UserService{
             throw new UserAlreadyExistException();
         }
         userModel.setPassword(passwordEncoder.encode(userModel.getPassword()));
-        var user = new User(userModel);
+        User user = new User(userModel);
         this.userRepository.save(user);
         VerificationCodeModel verificationCodeModel = VerificationCodeModel.builder()
                 .code(UUID.randomUUID().toString())
@@ -92,7 +91,7 @@ public class UserService{
 
     public TokenDto authenticate(AuthModel authModel) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authModel.getEmail(), authModel.getPassword()));
-        var user = this.userRepository.findUserByEmail(authModel.getEmail()).orElseThrow(AuthenticationException::new);
+        User user = this.userRepository.findUserByEmail(authModel.getEmail()).orElseThrow(AuthenticationException::new);
         String jwtToken = this.jwtService.generateToken(user);
         saveToken(user, jwtToken);
         return TokenDto.builder()
@@ -110,23 +109,20 @@ public class UserService{
     }
 
     public ModifyUserDto modifyUser(ModifyUserModel modifyUserModel, HttpServletRequest request) {
-        String token = request.getHeader(AUTHORIZATION_HEADER).substring(7);
+        String token = getTokenFromRequestHeader(request);
         String email = getEmailFromToken(token);
         User user = this.userRepository.findUserByEmail(email).orElseThrow(ModifyUserException::new);
-        if (!modifyUserModel.getNewUsername().isBlank()) {
-            user.setUsername(modifyUserModel.getNewUsername());
-        }
-        if (!modifyUserModel.getNewPassword().isBlank()) {
-            user.setPassword(passwordEncoder.encode(modifyUserModel.getNewPassword()));
-        }
+        user.setUsername(modifyUserModel.getNewUsername());
+        user.setPassword(passwordEncoder.encode(modifyUserModel.getNewPassword()));
         this.userRepository.save(user);
         return ModifyUserDto.builder()
                 .message("Modification was successful!")
                 .build();
     }
 
+
     public UserDetailsDto getUserDetails(HttpServletRequest request) {
-        String token = request.getHeader(AUTHORIZATION_HEADER).substring(7);
+        String token = getTokenFromRequestHeader(request);
         String email = getEmailFromToken(token);
         User user = this.userRepository.findUserByEmail(email).orElseThrow(UserNotFoundException::new);
         return UserDetailsDto.builder()
@@ -140,8 +136,9 @@ public class UserService{
                 .build();
     }
 
+
     public DeleteUserDto deleteUser(HttpServletRequest request) {
-        String token = request.getHeader(AUTHORIZATION_HEADER).substring(7);
+        String token = getTokenFromRequestHeader(request);
         String email = getEmailFromToken(token);
         User user = this.userRepository.findUserByEmail(email).orElseThrow(DeleteUserException::new);
         this.tokenService.expireTokensByUserId(user.getUserId());
@@ -152,7 +149,12 @@ public class UserService{
                 .build();
     }
 
-    private String getEmailFromToken(String token) {
+
+    public String getTokenFromRequestHeader(HttpServletRequest request) {
+        return request.getHeader(AUTHORIZATION_HEADER).substring(7);
+    }
+
+    public String getEmailFromToken(String token) {
         return this.jwtService.extractUserEmailFromToken(token);
     }
 }

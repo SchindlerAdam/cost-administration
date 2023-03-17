@@ -1,12 +1,20 @@
 package com.schindler.costadministration.service;
 
+import com.schindler.costadministration.dto.ModifyUserDto;
+import com.schindler.costadministration.dto.UserDetailsDto;
 import com.schindler.costadministration.entities.User;
+import com.schindler.costadministration.entities.VerificationCode;
 import com.schindler.costadministration.exception.exceptions.UserAlreadyExistException;
+import com.schindler.costadministration.exception.exceptions.UserNotFoundException;
 import com.schindler.costadministration.jwt.JwtService;
+import com.schindler.costadministration.model.AuthModel;
+import com.schindler.costadministration.model.ModifyUserModel;
 import com.schindler.costadministration.model.RegisterUserModel;
+import com.schindler.costadministration.model.VerificationCodeModel;
 import com.schindler.costadministration.repository.UserRepository;
 import com.schindler.costadministration.verification.VerificationService;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -16,10 +24,13 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Date;
 import java.util.Optional;
 
 import static org.mockito.BDDMockito.given;
@@ -44,6 +55,7 @@ class UserServiceTest {
 
     @Mock
     private VerificationService verificationService;
+
 
 
     @BeforeEach
@@ -84,8 +96,8 @@ class UserServiceTest {
 
         //WHEN
         underTest.isUserExisting(userModel.getEmail());
-        given(userRepository.findNotVerifiedUserByEmail(userModel.getEmail()))
-                .willReturn(Optional.of(new User(userModel)));
+        when(userRepository.findNotVerifiedUserByEmail(userModel.getEmail()))
+                .thenReturn(Optional.of(new User(userModel)));
 
         // THEN
         assertThatThrownBy(() -> underTest.registerUser(userModel))
@@ -103,27 +115,192 @@ class UserServiceTest {
     }
 
     @Test
-    @Disabled
-    void verifyUser() {
+    void verifyUserMethodShouldInvokeFindNotVerifiedUserByEmail() {
+        // GIVEN
+        RegisterUserModel userModel = new RegisterUserModel();
+        userModel.setEmail("test@test.com");
+        userModel.setUsername("Test");
+        userModel.setPassword("Test12345");
+        User user = new User(userModel);
+
+        VerificationCodeModel model = VerificationCodeModel.builder()
+                .code("randomVerificationCode")
+                .creationDate(new Date())
+                .user(user)
+                .build();
+
+        // WHEN
+
+        when(verificationService.getVerificationCode(model.getCode()))
+                .thenReturn(new VerificationCode(model));
+
+        when(userRepository.findNotVerifiedUserByEmail(model.getUser().getEmail()))
+                .thenReturn(Optional.of(user));
+
+        underTest.verifyUser(model.getCode());
+
+        ArgumentCaptor<String> codeArgumentCapture = ArgumentCaptor.forClass(String.class);
+        verify(verificationService).getVerificationCode(codeArgumentCapture.capture());
+        String capturedCode = codeArgumentCapture.getValue();
+
+        // THEN
+        assertThat(capturedCode).isEqualTo(model.getCode());
+        verify(userRepository).findNotVerifiedUserByEmail(model.getUser().getEmail());
+
     }
 
     @Test
-    @Disabled
-    void authenticate() {
+    void verifyUserMethodShouldThrowException() {
+        // GIVEN
+        RegisterUserModel userModel = new RegisterUserModel();
+        userModel.setEmail("test@test.com");
+        userModel.setUsername("Test");
+        userModel.setPassword("Test12345");
+        User user = new User(userModel);
+
+        VerificationCodeModel model = VerificationCodeModel.builder()
+                .code("randomVerificationCode")
+                .creationDate(new Date())
+                .user(user)
+                .build();
+
+        // WHEN
+        when(verificationService.getVerificationCode(model.getCode()))
+                .thenReturn(new VerificationCode(model));
+
+        // THEN
+            assertThatThrownBy(() -> underTest.verifyUser(model.getCode()))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessageContaining("Can not find a user with this email address!");
     }
 
     @Test
-    @Disabled
+    void authenticateMethodShouldBeCalled() {
+        // GIVEN
+        RegisterUserModel userModel = new RegisterUserModel();
+        userModel.setEmail("test@test.com");
+        userModel.setUsername("Test");
+        userModel.setPassword("Test12345");
+        User user = new User(userModel);
+
+        AuthModel authModel = AuthModel.builder()
+                .email("test@test.com")
+                .password("test12345")
+                .build();
+
+        // WHEN
+        when(userRepository.findUserByEmail(authModel.getEmail()))
+                .thenReturn(Optional.of(user));
+
+        underTest.authenticate(authModel);
+
+        // THEN
+        verify(authenticationManager).authenticate(new UsernamePasswordAuthenticationToken(
+                authModel.getEmail(),
+                authModel.getPassword()
+                )
+        );
+    }
+
+    @Test
+    void getTokenFromRequestHeader() {
+        // GIVEN
+        MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+        mockHttpServletRequest.addHeader("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c");
+
+        // WHEN
+        String expected = underTest.getTokenFromRequestHeader(mockHttpServletRequest);
+
+        // THEN
+        assertThat(
+                expected)
+                .isEqualTo("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c");
+    }
+
+    @Test
+    void getEmailFromToken() {
+        // GIVEN
+        String token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkcnNjaGluZGxlci5hZGFtQGdtYWlsLmNvbSIsImlhdCI6MTY3OTA2NTkzNywiZXhwIjoxNjc5MTUyMzM3fQ.kulove2RwXeFK1g-X8kfWQb9e8dO6F5fq74I21iIklQ";
+
+        // WHEN
+        when(jwtService.extractUserEmailFromToken(token))
+                .thenReturn("drschindler.adam@gmail.com");
+
+        // THEN
+        assertThat(underTest.getEmailFromToken(token)).isEqualTo("drschindler.adam@gmail.com");
+    }
+
+    @Test
     void modifyUser() {
+        // GIVEN
+        RegisterUserModel userModel = new RegisterUserModel();
+        userModel.setEmail("test@test.com");
+        userModel.setUsername("Test");
+        userModel.setPassword("Test12345");
+        User user = new User(userModel);
+
+        ModifyUserModel model = new ModifyUserModel();
+        model.setNewUsername("newUser");
+        model.setNewPassword("newPassword");
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer token123");
+
+        // WHEN
+        when(userRepository.findUserByEmail(null))
+                .thenReturn(Optional.of(user));
+
+        ModifyUserDto modifyUserDto = underTest.modifyUser(model, request);
+        // THEN
+        ArgumentCaptor<User> userArgumentCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userArgumentCaptor.capture());
+        User capturedUser = userArgumentCaptor.getValue();
+        assertThat(capturedUser).isEqualTo(user);
+        assertThat(modifyUserDto.getMessage()).isEqualTo("Modification was successful!");
     }
 
+
     @Test
-    @Disabled
     void getUserDetails() {
+        // GIVEN
+        RegisterUserModel userModel = new RegisterUserModel();
+        userModel.setEmail("test@test.com");
+        userModel.setUsername("Test");
+        userModel.setPassword("Test12345");
+        User user = new User(userModel);
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer token123");
+
+        // WHEN
+        when(userRepository.findUserByEmail(null))
+                .thenReturn(Optional.of(user));
+
+        UserDetailsDto userDetailsDto = underTest.getUserDetails(request);
+        verify(userRepository).findUserByEmail(null);
+        assertThat(user.getUsername()).isEqualTo(userDetailsDto.getUsername());
     }
 
     @Test
-    @Disabled
     void deleteUser() {
+        // GIVEN
+        RegisterUserModel userModel = new RegisterUserModel();
+        userModel.setEmail("test@test.com");
+        userModel.setUsername("Test");
+        userModel.setPassword("Test12345");
+        User user = new User(userModel);
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer token123");
+
+        // WHEN
+        when(userRepository.findUserByEmail(null))
+                .thenReturn(Optional.of(user));
+        underTest.deleteUser(request);
+        // THEN
+        ArgumentCaptor<User> userArgumentCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userArgumentCaptor.capture());
+        User capturedUser = userArgumentCaptor.getValue();
+        assertThat(capturedUser.getIsDeleted()).isTrue();
     }
 }
