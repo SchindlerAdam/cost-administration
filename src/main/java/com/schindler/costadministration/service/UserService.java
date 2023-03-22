@@ -1,21 +1,26 @@
 package com.schindler.costadministration.service;
 
+
+
 import com.schindler.costadministration.dto.*;
-import com.schindler.costadministration.verification.VerificationService;
-import com.schindler.costadministration.entities.VerificationCode;
-import com.schindler.costadministration.exception.exceptions.*;
-import com.schindler.costadministration.model.*;
 import com.schindler.costadministration.entities.User;
+import com.schindler.costadministration.entities.VerificationCode;
+import com.schindler.costadministration.exception.exceptions.AuthenticationException;
+import com.schindler.costadministration.exception.exceptions.DeleteUserException;
+import com.schindler.costadministration.exception.exceptions.ModifyUserException;
+import com.schindler.costadministration.exception.exceptions.UserNotFoundException;
 import com.schindler.costadministration.jwt.JwtService;
+import com.schindler.costadministration.model.*;
 import com.schindler.costadministration.repository.UserRepository;
+import com.schindler.costadministration.verification.VerificationService;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
@@ -55,9 +60,6 @@ public class UserService{
     }
 
     public VerificationDto registerUser(RegisterUserModel userModel) throws MessagingException, UnsupportedEncodingException {
-        if (isUserExisting(userModel.getEmail())) {
-            throw new UserAlreadyExistException();
-        }
         userModel.setPassword(passwordEncoder.encode(userModel.getPassword()));
         User user = new User(userModel);
         this.userRepository.save(user);
@@ -71,10 +73,6 @@ public class UserService{
         return VerificationDto.builder()
                 .message("Registration was successful! Please check the verification email and finish the registration process!")
                 .build();
-    }
-
-    public boolean isUserExisting(String email) {
-        return this.userRepository.findNotVerifiedUserByEmail(email).isPresent();
     }
 
     public TokenDto verifyUser(String verificationCode) {
@@ -91,7 +89,7 @@ public class UserService{
 
     public TokenDto authenticate(AuthModel authModel) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authModel.getEmail(), authModel.getPassword()));
-        User user = this.userRepository.findUserByEmail(authModel.getEmail()).orElseThrow(AuthenticationException::new);
+        User user = this.userRepository.findVerifiedUserByEmail(authModel.getEmail()).orElseThrow(AuthenticationException::new);
         String jwtToken = this.jwtService.generateToken(user);
         saveToken(user, jwtToken);
         return TokenDto.builder()
@@ -111,7 +109,7 @@ public class UserService{
     public ModifyUserDto modifyUser(ModifyUserModel modifyUserModel, HttpServletRequest request) {
         String token = getTokenFromRequestHeader(request);
         String email = getEmailFromToken(token);
-        User user = this.userRepository.findUserByEmail(email).orElseThrow(ModifyUserException::new);
+        User user = this.userRepository.findVerifiedUserByEmail(email).orElseThrow(ModifyUserException::new);
         user.setUsername(modifyUserModel.getNewUsername());
         user.setPassword(passwordEncoder.encode(modifyUserModel.getNewPassword()));
         this.userRepository.save(user);
@@ -124,7 +122,7 @@ public class UserService{
     public UserDetailsDto getUserDetails(HttpServletRequest request) {
         String token = getTokenFromRequestHeader(request);
         String email = getEmailFromToken(token);
-        User user = this.userRepository.findUserByEmail(email).orElseThrow(UserNotFoundException::new);
+        User user = this.userRepository.findVerifiedUserByEmail(email).orElseThrow(UserNotFoundException::new);
         return UserDetailsDto.builder()
                 .userId(user.getUserId())
                 .username((user.getUsername()))
@@ -140,7 +138,7 @@ public class UserService{
     public DeleteUserDto deleteUser(HttpServletRequest request) {
         String token = getTokenFromRequestHeader(request);
         String email = getEmailFromToken(token);
-        User user = this.userRepository.findUserByEmail(email).orElseThrow(DeleteUserException::new);
+        User user = this.userRepository.findVerifiedUserByEmail(email).orElseThrow(DeleteUserException::new);
         this.tokenService.expireTokensByUserId(user.getUserId());
         user.setIsDeleted(true);
         this.userRepository.save(user);

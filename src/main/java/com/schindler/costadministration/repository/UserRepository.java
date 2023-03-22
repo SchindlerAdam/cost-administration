@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u WHERE u.email = :email AND u.isVerified = TRUE AND u.isDeleted = FALSE")
-    Optional<User>  findUserByEmail(@Param("email") String email);
+    Optional<User> findVerifiedUserByEmail(@Param("email") String email);
 
     @Query("SELECT u FROM User u WHERE u.email = :email AND u.isDeleted = FALSE")
     Optional<User>  findNotVerifiedUserByEmail(@Param("email") String email);

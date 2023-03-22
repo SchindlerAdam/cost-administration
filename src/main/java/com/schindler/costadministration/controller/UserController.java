@@ -5,11 +5,14 @@ import com.schindler.costadministration.model.AuthModel;
 import com.schindler.costadministration.model.ModifyUserModel;
 import com.schindler.costadministration.model.RegisterUserModel;
 import com.schindler.costadministration.service.UserService;
+import com.schindler.costadministration.validation.usermodel.RegisterUserModelValidator;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
@@ -18,14 +21,21 @@ import java.io.UnsupportedEncodingException;
 @RequestMapping("/api/user")
 public class UserController {
 
+    private final RegisterUserModelValidator registerUserModelValidator;
     private final UserService userService;
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(RegisterUserModelValidator registerUserModelValidator, UserService userService) {
+        this.registerUserModelValidator = registerUserModelValidator;
         this.userService = userService;
     }
 
+    @InitBinder
+    public void registerUserBinder(WebDataBinder webDataBinder) {
+        webDataBinder.addValidators(this.registerUserModelValidator);
+    }
+
     @PostMapping("/register")
-    public ResponseEntity<VerificationDto> registerUser(@RequestBody RegisterUserModel userModel) throws MessagingException, UnsupportedEncodingException {
+    public ResponseEntity<VerificationDto> registerUser(@RequestBody @Valid RegisterUserModel userModel) throws MessagingException, UnsupportedEncodingException {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(this.userService.registerUser(userModel));

@@ -34,7 +34,7 @@ class UserRepositoryTest {
 
         // WHEN
         underTest.save(user);
-        boolean expected = underTest.findUserByEmail("test@test.com").isPresent();
+        boolean expected = underTest.findVerifiedUserByEmail("test@test.com").isPresent();
 
         // THEN
         assertThat(expected).isTrue();
@@ -52,7 +52,7 @@ class UserRepositoryTest {
 
     @Test
     void shouldThrowUsernameNotFoundExceptionWhenUserNotFound() {
-        assertThatThrownBy(() -> underTest.findUserByEmail("fake@email.com").orElseThrow(UserNotFoundException::new))
+        assertThatThrownBy(() -> underTest.findVerifiedUserByEmail("fake@email.com").orElseThrow(UserNotFoundException::new))
                 .isInstanceOf(UserNotFoundException.class)
                 .hasMessageContaining("Can not find a user with this email address!");
     }

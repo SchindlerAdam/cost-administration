@@ -29,7 +29,7 @@ public class Beans {
         return new UserDetailsService() {
             @Override
             public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-                return userRepository.findUserByEmail(username).orElseThrow( () -> new UsernameNotFoundException("Can not find a user with this email address!"));
+                return userRepository.findVerifiedUserByEmail(username).orElseThrow( () -> new UsernameNotFoundException("Can not find a user with this email address!"));
             }
         };
     }

@@ -4,7 +4,6 @@ import com.schindler.costadministration.dto.ModifyUserDto;
 import com.schindler.costadministration.dto.UserDetailsDto;
 import com.schindler.costadministration.entities.User;
 import com.schindler.costadministration.entities.VerificationCode;
-import com.schindler.costadministration.exception.exceptions.UserAlreadyExistException;
 import com.schindler.costadministration.exception.exceptions.UserNotFoundException;
 import com.schindler.costadministration.jwt.JwtService;
 import com.schindler.costadministration.model.AuthModel;
@@ -14,13 +13,10 @@ import com.schindler.costadministration.model.VerificationCodeModel;
 import com.schindler.costadministration.repository.UserRepository;
 import com.schindler.costadministration.verification.VerificationService;
 import jakarta.mail.MessagingException;
-import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -33,7 +29,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.Optional;
 
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 
@@ -84,34 +79,6 @@ class UserServiceTest {
         verify(userRepository).save(userArgumentCaptor.capture());
         User capturedUser = userArgumentCaptor.getValue();
         assertThat(capturedUser).isEqualTo(user);
-    }
-
-    @Test
-    void registerUserMethodShouldThrowUserAlreadyExistsException() throws MessagingException, UnsupportedEncodingException {
-        // GIVEN
-        RegisterUserModel userModel = new RegisterUserModel();
-        userModel.setEmail("test@test.com");
-        userModel.setUsername("Test");
-        userModel.setPassword("Test12345");
-
-        //WHEN
-        underTest.isUserExisting(userModel.getEmail());
-        when(userRepository.findNotVerifiedUserByEmail(userModel.getEmail()))
-                .thenReturn(Optional.of(new User(userModel)));
-
-        // THEN
-        assertThatThrownBy(() -> underTest.registerUser(userModel))
-                .isInstanceOf(UserAlreadyExistException.class)
-                .hasMessageContaining("User with this email is already exists!");
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"test@test.com"})
-    void shouldCallFindNotVerifiedUserByEmail(String email) {
-        // WHEN
-        underTest.isUserExisting(email);
-        // THEN
-        verify(userRepository).findNotVerifiedUserByEmail(email);
     }
 
     @Test
@@ -189,7 +156,7 @@ class UserServiceTest {
                 .build();
 
         // WHEN
-        when(userRepository.findUserByEmail(authModel.getEmail()))
+        when(userRepository.findVerifiedUserByEmail(authModel.getEmail()))
                 .thenReturn(Optional.of(user));
 
         underTest.authenticate(authModel);
@@ -247,7 +214,7 @@ class UserServiceTest {
         request.addHeader("Authorization", "Bearer token123");
 
         // WHEN
-        when(userRepository.findUserByEmail(null))
+        when(userRepository.findVerifiedUserByEmail(null))
                 .thenReturn(Optional.of(user));
 
         ModifyUserDto modifyUserDto = underTest.modifyUser(model, request);
@@ -273,11 +240,11 @@ class UserServiceTest {
         request.addHeader("Authorization", "Bearer token123");
 
         // WHEN
-        when(userRepository.findUserByEmail(null))
+        when(userRepository.findVerifiedUserByEmail(null))
                 .thenReturn(Optional.of(user));
 
         UserDetailsDto userDetailsDto = underTest.getUserDetails(request);
-        verify(userRepository).findUserByEmail(null);
+        verify(userRepository).findVerifiedUserByEmail(null);
         assertThat(user.getUsername()).isEqualTo(userDetailsDto.getUsername());
     }
 
@@ -294,7 +261,7 @@ class UserServiceTest {
         request.addHeader("Authorization", "Bearer token123");
 
         // WHEN
-        when(userRepository.findUserByEmail(null))
+        when(userRepository.findVerifiedUserByEmail(null))
                 .thenReturn(Optional.of(user));
         underTest.deleteUser(request);
         // THEN
