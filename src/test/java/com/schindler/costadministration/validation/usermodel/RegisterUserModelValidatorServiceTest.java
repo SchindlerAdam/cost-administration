@@ -28,6 +28,20 @@ class RegisterUserModelValidatorServiceTest {
     }
 
     @ParameterizedTest
+    @ValueSource(strings = {"   "})
+    void emailFieldShouldEmpty(String email) {
+        boolean expected = underTest.checkIfFieldIsEmptyOrBlank(email);
+        assertThat(expected).isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"test@test.com"})
+    void emailFieldShouldNotEmpty(String email) {
+        boolean expected = underTest.checkIfFieldIsEmptyOrBlank(email);
+        assertThat(expected).isFalse();
+    }
+
+    @ParameterizedTest
     @ValueSource(strings = {"test@test.com"})
     void shouldFindUserWithEmail(String email) {
         // WHEN

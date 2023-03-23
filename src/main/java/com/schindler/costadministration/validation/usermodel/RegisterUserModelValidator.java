@@ -9,6 +9,10 @@ import org.springframework.validation.Validator;
 @Component
 public class RegisterUserModelValidator implements Validator {
 
+    private static final String EMAIL_FIELD = "email";
+    private static final String PASSWORD_FIELD = "password";
+    private static final String USERNAME_FIELD = "username";
+
     private final RegisterUserModelValidatorService registerUserModelValidatorService;
 
     @Autowired
@@ -26,16 +30,28 @@ public class RegisterUserModelValidator implements Validator {
 
         RegisterUserModel registerUserModel = (RegisterUserModel) target;
 
+        if (this.registerUserModelValidatorService.checkIfFieldIsEmptyOrBlank(registerUserModel.getEmail())) {
+            errors.rejectValue(EMAIL_FIELD, "email.empty");
+        }
+
+        if (this.registerUserModelValidatorService.checkIfFieldIsEmptyOrBlank(registerUserModel.getPassword())) {
+            errors.rejectValue(PASSWORD_FIELD, "password.empty");
+        }
+
+        if (this.registerUserModelValidatorService.checkIfFieldIsEmptyOrBlank(registerUserModel.getUsername())) {
+            errors.rejectValue(USERNAME_FIELD, "username.empty");
+        }
+
         if (this.registerUserModelValidatorService.checkIfEmailIsExist(registerUserModel.getEmail())) {
-            errors.rejectValue("email", "email.already.exists");
+            errors.rejectValue(EMAIL_FIELD, "email.already.exists");
         }
 
         if (!this.registerUserModelValidatorService.checkIfEmailContainsAtSymbol(registerUserModel.getEmail())) {
-            errors.rejectValue("email", "email.invalid.format");
+            errors.rejectValue(EMAIL_FIELD, "email.invalid.format");
         }
 
         if (!this.registerUserModelValidatorService.checkIfPasswordIsValid(registerUserModel.getPassword())) {
-            errors.rejectValue("password", "password.invalid");
+            errors.rejectValue(PASSWORD_FIELD, "password.invalid");
         }
     }
 }

@@ -65,4 +65,8 @@ public class RegisterUserModelValidatorService {
         }
         return specialCharacterCounter > 0;
     }
+
+    public boolean checkIfFieldIsEmptyOrBlank(String field) {
+        return field.isEmpty() || field.isBlank();
+    }
 }
